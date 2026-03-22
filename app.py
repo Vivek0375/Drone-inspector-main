@@ -7,7 +7,7 @@ from simulation_engine import SimulationEngine
 
 app = Flask(__name__)
 CORS(app)
-
+//structure of the code is optimized for better performance and maintainability
 SIMULATION_WIDTH = 1000  # Reduced size for better performance
 SIMULATION_HEIGHT = 700
 TARGET_POSITION = [500, 350]
