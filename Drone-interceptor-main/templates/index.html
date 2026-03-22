@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Drone Interceptor System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --bg-dark: #0f0f23;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #e4e4f0;
+            --text-secondary: #a0a0b8;
+            --accent-blue: #4facfe;
+            --accent-purple: #667eea;
+            --accent-pink: #f093fb;
+            --accent-green: #43e97b;
+            --accent-orange: #fa709a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at top right, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom left, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header */
+        .dashboard-header {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 15, 35, 0.6);
+            backdrop-filter: blur(20px);
+            flex-shrink: 0;
+        }
+        
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin: 0;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            overflow: hidden;
+        }
+        
+        /* Glass Cards */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1rem;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        
+        .card-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+        .card-icon.purple { background: rgba(102, 126, 234, 0.15); color: var(--accent-purple); }
+        .card-icon.blue { background: rgba(79, 172, 254, 0.15); color: var(--accent-blue); }
+        .card-icon.pink { background: rgba(240, 147, 251, 0.15); color: var(--accent-pink); }
+        .card-icon.green { background: rgba(67, 233, 123, 0.15); color: var(--accent-green); }
+        .card-icon.orange { background: rgba(250, 112, 154, 0.15); color: var(--accent-orange); }
+        
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .card-body {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .card-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .card-body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+        
+        .card-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        /* Layout Columns */
+        .left-sidebar {
+            width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .center-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 0;
+        }
+        
+        .right-sidebar {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        /* Buttons */
+        .btn-modern {
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .btn-modern:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+        
+        .btn-modern:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn-danger-gradient {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-success-gradient {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .btn-warning-gradient {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+        
+        .btn-outline-glass {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+        
+        /* Stats */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        /* Canvas */
+        .canvas-container {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid var(--border-color);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #simulationCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+        
+        .canvas-legend {
+            position: absolute;
+            bottom: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.4rem 0.75rem;
+            background: rgba(15, 15, 35, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            font-size: 0.65rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .legend-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        
+        /* Entity List */
+        .entity-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .entity-id {
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .entity-meta {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+        
+        .threat-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .threat-critical {
+            background: rgba(240, 147, 251, 0.2);
+            color: var(--accent-pink);
+        }
+        
+        .threat-high {
+            background: rgba(250, 112, 154, 0.2);
+            color: var(--accent-orange);
+        }
+        
+        .threat-medium {
+            background: rgba(254, 225, 64, 0.2);
+            color: #fee140;
+        }
+        
+        .threat-low {
+            background: rgba(67, 233, 123, 0.2);
+            color: var(--accent-green);
+        }
+        
+        /* AI Status */
+        .ai-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: rgba(67, 233, 123, 0.1);
+            border: 1px solid rgba(67, 233, 123, 0.2);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .ai-status.inactive {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-color);
+        }
+        
+        /* System Log */
+        .system-log {
+            height: 100%;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            line-height: 1.5;
+        }
+        
+        .system-log::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .system-log::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .system-log::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry {
+            margin-bottom: 0.3rem;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .log-info { color: var(--accent-blue); }
+        .log-success { color: var(--accent-green); }
+        .log-warning { color: #fee140; }
+        .log-danger { color: var(--accent-pink); }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 1.5rem 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+        
+        .empty-state i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.3;
+        }
+        
+        /* Compact Spacing */
+        .btn-group-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.5rem 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .left-sidebar {
+                width: 200px;
+            }
+            .right-sidebar {
+                width: 260px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .right-sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="header-title">
+                        <i class="fas fa-satellite-dish me-2"></i>AI Drone Defense System
+                    </h1>
+                    <p class="header-subtitle">Real-time autonomous threat detection & interception</p>
+                </div>
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span id="systemStatus">System Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Left Sidebar -->
+            <div class="left-sidebar">
+                <!-- Controls -->
+                <div class="glass-card" style="flex: 1;">
+                    <div class="card-header">
+                        <div class="card-icon purple">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <h3 class="card-title">Controls</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="btn-group-compact">
+                            <button class="btn-modern btn-primary-gradient" onclick="launchDrone('standard')">
+                                <i class="fas fa-drone"></i>
+                                <span>Standard</span>
+                            </button>
+                            
+                            <button class="btn-modern btn-primary-gradient" onclick="launchDrone('stealth')">
+                                <i class="fas fa-user-secret"></i>
+                                <span>Stealth</span>
+                            </button>
+                            
+                            <button class="btn-modern btn-primary-gradient" onclick="launchDrone('swarm')">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Swarm</span>
+                            </button>
+                            
+                            <div class="divider"></div>
+                            
+                            <button class="btn-modern btn-danger-gradient" onclick="launchInterceptor()">
+                                <i class="fas fa-rocket"></i>
+                                <span>Interceptor</span>
+                            </button>
+                            
+                            <button class="btn-modern btn-success-gradient" onclick="toggleAutoRefresh()">
+                                <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                                <span id="toggleRefreshText">Auto-Refresh</span>
+                            </button>
+                            
+                            <button class="btn-modern btn-warning-gradient" onclick="resetSimulation()">
+                                <i class="fas fa-redo"></i>
+                                <span>Reset</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="glass-card" style="flex: 0.8;">
+                    <div class="card-header">
+                        <div class="card-icon green">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="card-title">Stats</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="stat-card">
+                            <div class="stat-label">Missions</div>
+                            <h2 class="stat-value" style="color: var(--accent-purple);" id="statTotal">0</h2>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Intercepted</div>
+                            <h2 class="stat-value" style="color: var(--accent-green);" id="statIntercepted">0</h2>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Breached</div>
+                            <h2 class="stat-value" style="color: var(--accent-pink);" id="statReached">0</h2>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Success</div>
+                            <h2 class="stat-value" style="color: var(--accent-blue);" id="statSuccess">0%</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Area -->
+            <div class="center-area">
+                <!-- Simulation Canvas -->
+                <div class="glass-card" style="flex: 1;">
+                    <div class="card-header">
+                        <div class="card-icon blue">
+                            <i class="fas fa-radar"></i>
+                        </div>
+                        <h3 class="card-title">Live Battlefield</h3>
+                        <div class="ms-auto">
+                            <button class="btn-outline-glass" onclick="manualRefresh()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-container">
+                        <canvas id="simulationCanvas" width="800" height="500"></canvas>
+                        <div class="canvas-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #ff6b9d;"></div>
+                                <span>Target</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #4facfe;"></div>
+                                <span>Base</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #c471f5;"></div>
+                                <span>Threats</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #43e97b;"></div>
+                                <span>Interceptors</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Threats -->
+                <div class="glass-card" style="flex: 0 0 180px;">
+                    <div class="card-header">
+                        <div class="card-icon pink">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 class="card-title">Active Threats</h3>
+                    </div>
+                    
+                    <div class="card-body" id="activeDrones">
+                        <div class="empty-state">
+                            <i class="fas fa-shield-alt"></i>
+                            <p>No threats detected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="right-sidebar">
+                <!-- AI Systems -->
+                <div class="glass-card" style="flex: 0 0 auto;">
+                    <div class="card-header">
+                        <div class="card-icon orange">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="card-title">AI Systems</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="ai-status" id="mlTrajectoryStatus">
+                            <span>Trajectory Prediction</span>
+                            <i class="fas fa-check-circle" style="color: var(--accent-green);"></i>
+                        </div>
+                        
+                        <div class="ai-status" id="mlThreatStatus">
+                            <span>Threat Assessment</span>
+                            <i class="fas fa-check-circle" style="color: var(--accent-green);"></i>
+                        </div>
+                        
+                        <div class="ai-status" id="mlInterceptionStatus">
+                            <span>Interception AI</span>
+                            <i class="fas fa-check-circle" style="color: var(--accent-green);"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Interceptors -->
+                <div class="glass-card" style="flex: 1;">
+                    <div class="card-header">
+                        <div class="card-icon green">
+                            <i class="fas fa-fighter-jet"></i>
+                        </div>
+                        <h3 class="card-title">Interceptors</h3>
+                    </div>
+                    
+                    <div class="card-body" id="activeInterceptors">
+                        <div class="empty-state">
+                            <i class="fas fa-rocket"></i>
+                            <p>No interceptors deployed</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Log -->
+                <div class="glass-card" style="flex: 1;">
+                    <div class="card-header">
+                        <div class="card-icon purple">
+                            <i class="fas fa-terminal"></i>
+                        </div>
+                        <h3 class="card-title">System Log</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="system-log" id="systemLog">
+                            <div class="log-entry log-info">[SYSTEM] Defense system initialized</div>
+                            <div class="log-entry log-success">[API] Connection established</div>
+                            <div class="log-entry log-info">[AI] Neural networks loaded</div>
+                            <div class="log-entry log-success">[STATUS] Ready for operations</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let autoRefreshInterval = null;
+        let isAutoRefresh = true;
+        let canvas, ctx;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCanvas();
+            checkMLStatus();
+            startAutoRefresh();
+            addLog('System initialized successfully', 'success');
+        });
+        
+        function initializeCanvas() {
+            canvas = document.getElementById('simulationCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const rect = container.getBoundingClientRect();
+            const maxWidth = 800;
+            const maxHeight = 500;
+            const aspectRatio = maxWidth / maxHeight;
+            
+            let width = Math.min(rect.width - 20, maxWidth);
+            let height = Math.min(rect.height - 20, maxHeight);
+            
+            if (width / height > aspectRatio) {
+                width = height * aspectRatio;
+            } else {
+                height = width / aspectRatio;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            if (window.lastSimulationState) {
+                renderSimulation(window.lastSimulationState);
+            }
+        }
+        
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(fetchSimulationState, 1000);
+            updateRefreshStatus(true);
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            updateRefreshStatus(false);
+        }
+        
+        function toggleAutoRefresh() {
+            if (isAutoRefresh) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+            isAutoRefresh = !isAutoRefresh;
+        }
+        
+        function updateRefreshStatus(active) {
+            const icon = document.getElementById('refreshIcon');
+            if (active) {
+                icon.style.animation = 'spin 2s linear infinite';
+            } else {
+                icon.style.animation = 'none';
+            }
+        }
+        
+        function manualRefresh() {
+            fetchSimulationState();
+            addLog('Manual refresh triggered', 'info');
+        }
+        
+        async function fetchSimulationState() {
+            try {
+                const response = await fetch('/api/simulation/state');
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateDashboard(result.data);
+                    renderSimulation(result.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch state:', error);
+            }
+        }
+        
+        async function launchDrone(type) {
+            try {
+                const response = await fetch('/api/drones/launch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: type })
+                });
+                
+                const result = await response.json();
+                addLog(`${type.toUpperCase()} drone launched`, result.success ? 'success' : 'warning');
+                fetchSimulationState();
+            } catch (error) {
+                addLog('Failed to launch drone', 'danger');
+            }
+        }
+        
+        async function launchInterceptor(droneId = null) {
+            try {
+                const payload = droneId ? { drone_id: droneId } : {};
+                const response = await fetch('/api/interceptors/launch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                addLog('Interceptor deployed', result.success ? 'success' : 'warning');
+                fetchSimulationState();
+            } catch (error) {
+                addLog('Failed to launch interceptor', 'danger');
+            }
+        }
+        
+        async function resetSimulation() {
+            try {
+                const response = await fetch('/api/simulation/reset', {
+                    method: 'POST'
+                });
+                
+                addLog('Simulation reset complete', 'info');
+                fetchSimulationState();
+            } catch (error) {
+                addLog('Failed to reset', 'danger');
+            }
+        }
+        
+        async function checkMLStatus() {
+            try {
+                const response = await fetch('/api/ml/status');
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateMLStatus('mlTrajectoryStatus', result.models.trajectory_prediction);
+                    updateMLStatus('mlThreatStatus', result.models.threat_assessment);
+                    updateMLStatus('mlInterceptionStatus', result.models.interception_optimization);
+                }
+            } catch (error) {
+                console.error('Failed to check ML status:', error);
+            }
+        }
+        
+        function updateMLStatus(elementId, isActive) {
+            const element = document.getElementById(elementId);
+            const icon = element.querySelector('i');
+            
+            if (isActive) {
+                element.classList.remove('inactive');
+                icon.className = 'fas fa-check-circle';
+                icon.style.color = 'var(--accent-green)';
+            } else {
+                element.classList.add('inactive');
+                icon.className = 'fas fa-times-circle';
+                icon.style.color = 'var(--text-secondary)';
+            }
+        }
+        
+        function updateDashboard(data) {
+            window.lastSimulationState = data;
+            
+            document.getElementById('statTotal').textContent = data.statistics.total_drones_launched;
+            document.getElementById('statIntercepted').textContent = data.statistics.drones_intercepted;
+            document.getElementById('statReached').textContent = data.statistics.drones_reached_target;
+            
+            const total = data.statistics.drones_intercepted + data.statistics.drones_reached_target;
+            const successRate = total > 0 ? (data.statistics.drones_intercepted / total * 100) : 0;
+            document.getElementById('statSuccess').textContent = successRate.toFixed(1) + '%';
+            
+            updateDroneList(data.drones);
+            updateInterceptorList(data.interceptors);
+        }
+        
+        function updateDroneList(drones) {
+            const container = document.getElementById('activeDrones');
+            const activeDrones = drones.filter(d => d.active);
+            
+            if (activeDrones.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-shield-alt"></i>
+                        <p>No threats detected</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            activeDrones.forEach(drone => {
+                const threatClass = drone.threat_level.toLowerCase();
+                html += `
+                    <div class="entity-item">
+                        <div style="flex: 1;">
+                            <div class="entity-id">${drone.id}</div>
+                            <div class="entity-meta">${drone.type || 'Standard'}</div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="threat-badge threat-${threatClass}">${drone.threat_level}</span>
+                            <button class="btn-outline-glass" onclick="launchInterceptor('${drone.id}')" style="padding: 0.3rem 0.5rem;">
+                                <i class="fas fa-crosshairs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function updateInterceptorList(interceptors) {
+            const container = document.getElementById('activeInterceptors');
+            const activeInterceptors = interceptors.filter(i => i.active);
+            
+            if (activeInterceptors.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-rocket"></i>
+                        <p>No interceptors deployed</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            activeInterceptors.forEach(interceptor => {
+                const fuel = Math.round(interceptor.fuel || 100);
+                html += `
+                    <div class="entity-item">
+                        <div style="flex: 1;">
+                            <div class="entity-id">${interceptor.id}</div>
+                            <div class="entity-meta">${interceptor.target_drone || 'Seeking...'}</div>
+                        </div>
+                        <div class="threat-badge" style="background: rgba(67, 233, 123, 0.2); color: var(--accent-green);">
+                            ${fuel}%
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function renderSimulation(data) {
+            ctx.fillStyle = '#0a0a15';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawGrid();
+            
+            const scaleX = canvas.width / 800;
+            const scaleY = canvas.height / 500;
+            
+            drawTarget(data.environment.target_position, scaleX, scaleY);
+            drawBase(data.environment.base_position, scaleX, scaleY);
+            
+            data.drones.forEach(drone => {
+                if (drone.active) {
+                    drawDrone(drone, scaleX, scaleY);
+                }
+            });
+            
+            data.interceptors.forEach(interceptor => {
+                if (interceptor.active) {
+                    drawInterceptor(interceptor, scaleX, scaleY);
+                }
+            });
+        }
+        
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(102, 126, 234, 0.08)';
+            ctx.lineWidth = 1;
+            
+            const gridSize = Math.min(canvas.width, canvas.height) / 10;
+            
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        function drawTarget(position, scaleX, scaleY) {
+            const [x, y] = position;
+            const sx = x * scaleX;
+            const sy = y * scaleY;
+            const radius = 20 * Math.min(scaleX, scaleY);
+            
+            const gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius * 1.5);
+            gradient.addColorStop(0, 'rgba(255, 107, 157, 0.4)');
+            gradient.addColorStop(0.5, 'rgba(255, 107, 157, 0.2)');
+            gradient.addColorStop(1, 'rgba(255, 107, 157, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(sx - radius * 1.5, sy - radius * 1.5, radius * 3, radius * 3);
+            
+            ctx.fillStyle = '#ff6b9d';
+            ctx.beginPath();
+            ctx.arc(sx, sy, radius * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(sx - radius * 0.5, sy);
+            ctx.lineTo(sx + radius * 0.5, sy);
+            ctx.moveTo(sx, sy - radius * 0.5);
+            ctx.lineTo(sx, sy + radius * 0.5);
+            ctx.stroke();
+        }
+        
+        function drawBase(position, scaleX, scaleY) {
+            const [x, y] = position;
+            const sx = x * scaleX;
+            const sy = y * scaleY;
+            const size = 30 * Math.min(scaleX, scaleY);
+            
+            const gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, size * 1.5);
+            gradient.addColorStop(0, 'rgba(79, 172, 254, 0.4)');
+            gradient.addColorStop(0.5, 'rgba(79, 172, 254, 0.2)');
+            gradient.addColorStop(1, 'rgba(79, 172, 254, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(sx - size * 1.5, sy - size * 1.5, size * 3, size * 3);
+            
+            ctx.fillStyle = '#4facfe';
+            ctx.beginPath();
+            ctx.moveTo(sx, sy - size);
+            ctx.lineTo(sx + size * 0.7, sy);
+            ctx.lineTo(sx, sy + size);
+            ctx.lineTo(sx - size * 0.7, sy);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(sx, sy, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawDrone(drone, scaleX, scaleY) {
+            const [x, y] = drone.position;
+            const sx = x * scaleX;
+            const sy = y * scaleY;
+            const size = 10 * Math.min(scaleX, scaleY);
+            
+            const color = getDroneColor(drone.threat_level);
+            
+            const gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, size * 2);
+            gradient.addColorStop(0, color + '60');
+            gradient.addColorStop(0.5, color + '20');
+            gradient.addColorStop(1, color + '00');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(sx - size * 2, sy - size * 2, size * 4, size * 4);
+            
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(sx, sy, size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            const heading = drone.heading || 0;
+            const lineLength = size * 1.8;
+            const dx = Math.cos(heading) * lineLength;
+            const dy = Math.sin(heading) * lineLength;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(sx + dx, sy + dy);
+            ctx.stroke();
+        }
+        
+        function drawInterceptor(interceptor, scaleX, scaleY) {
+            const [x, y] = interceptor.position;
+            const sx = x * scaleX;
+            const sy = y * scaleY;
+            const size = 12 * Math.min(scaleX, scaleY);
+            
+            const gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, size * 2);
+            gradient.addColorStop(0, 'rgba(67, 233, 123, 0.6)');
+            gradient.addColorStop(0.5, 'rgba(67, 233, 123, 0.2)');
+            gradient.addColorStop(1, 'rgba(67, 233, 123, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(sx - size * 2, sy - size * 2, size * 4, size * 4);
+            
+            ctx.fillStyle = '#43e97b';
+            ctx.beginPath();
+            ctx.moveTo(sx, sy - size);
+            ctx.lineTo(sx - size * 0.6, sy + size * 0.6);
+            ctx.lineTo(sx + size * 0.6, sy + size * 0.6);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(255, 225, 64, 0.8)';
+            ctx.beginPath();
+            ctx.moveTo(sx - size * 0.4, sy + size * 0.6);
+            ctx.lineTo(sx + size * 0.4, sy + size * 0.6);
+            ctx.lineTo(sx, sy + size * 1.3);
+            ctx.closePath();
+            ctx.fill();
+            
+            if (interceptor.intercept_point) {
+                const [tx, ty] = interceptor.intercept_point;
+                const tsx = tx * scaleX;
+                const tsy = ty * scaleY;
+                
+                ctx.strokeStyle = 'rgba(67, 233, 123, 0.4)';
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(tsx, tsy);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+        
+        function getDroneColor(threatLevel) {
+            switch(threatLevel) {
+                case 'CRITICAL': return '#f093fb';
+                case 'HIGH': return '#fa709a';
+                case 'MEDIUM': return '#fee140';
+                case 'LOW': return '#c471f5';
+                default: return '#667eea';
+            }
+        }
+        
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('systemLog');
+            const typeMap = {
+                'info': 'SYSTEM',
+                'success': 'SUCCESS',
+                'warning': 'WARNING',
+                'danger': 'ERROR'
+            };
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${typeMap[type]}] ${message}`;
+            
+            log.insertBefore(logEntry, log.firstChild);
+            
+            if (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
