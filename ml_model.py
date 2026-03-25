@@ -14,7 +14,8 @@ class MLDroneInterceptor:
         self.scaler_threat = StandardScaler()
         self.label_encoder = LabelEncoder()
         self.models_loaded = False
-        self.initialize_models()
+        self.initialize_models() 
+        #defines the method
     
     def initialize_models(self):
         """Initialize and train ML models without TensorFlow"""
