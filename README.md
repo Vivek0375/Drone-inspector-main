@@ -22,9 +22,3 @@ A sophisticated machine learning-based drone interception simulation system buil
 2. **Threat Assessment** (Random Forest): Classifies drone threat levels
 3. **Interception Optimization** (Gradient Boosting): Calculates optimal intercept strategies
 
-## 🛠️ Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd drone-interceptor-ml
